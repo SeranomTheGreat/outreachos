@@ -8,6 +8,8 @@ export interface Lead {
   status: 'new' | 'contacted' | 'interested' | 'not_interested';
   tags: string[];
   createdAt: number;
+  reminderDate?: number;
+  reminderNote?: string;
 }
 
 export interface Message {

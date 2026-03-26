@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatArea } from './components/ChatArea';
+import { Dashboard } from './components/Dashboard';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Lead, Message } from './types';
 
@@ -18,8 +19,8 @@ export default function App() {
     setLeads(prev => [lead, ...prev]);
   };
 
-  const handleUpdateLeadStatus = (id: string, status: Lead['status']) => {
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+  const handleUpdateLead = (id: string, updates: Partial<Lead>) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
   };
 
   const handleAddMessage = (message: Message) => {
@@ -56,18 +57,27 @@ export default function App() {
         selectedLeadId={selectedLeadId} 
         onSelectLead={setSelectedLeadId} 
         onAddLead={handleAddLead} 
+        onUpdateLead={handleUpdateLead}
         onStartCampaign={handleStartCampaign}
       />
-      <ChatArea 
-        className={selectedLeadId ? "flex" : "hidden md:flex"}
-        lead={selectedLead} 
-        messages={messages} 
-        onAddMessage={handleAddMessage} 
-        onUpdateLeadStatus={handleUpdateLeadStatus}
-        campaignLeadIds={campaignLeadIds}
-        onNextCampaignLead={handleNextCampaignLead}
-        onBack={() => setSelectedLeadId(null)}
-      />
+      {selectedLeadId ? (
+        <ChatArea 
+          className="flex"
+          lead={selectedLead} 
+          messages={messages} 
+          onAddMessage={handleAddMessage} 
+          onUpdateLead={handleUpdateLead}
+          campaignLeadIds={campaignLeadIds}
+          onNextCampaignLead={handleNextCampaignLead}
+          onBack={() => setSelectedLeadId(null)}
+        />
+      ) : (
+        <Dashboard 
+          leads={leads} 
+          messages={messages} 
+          className="hidden md:flex"
+        />
+      )}
     </div>
   );
 }
