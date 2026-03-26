@@ -29,8 +29,11 @@ export async function searchBusinesses(query: string) {
       console.error('Failed to parse search results:', e, text);
       return [];
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error searching businesses:', error);
+    if (error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED')) {
+      throw new Error("Gemini API Quota Exceeded. Please wait a minute and try again, or check your billing details in Google AI Studio.");
+    }
     throw error;
   }
 }
