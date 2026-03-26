@@ -19,6 +19,7 @@ interface SidebarProps {
 export function Sidebar({ leads, selectedLeadId, onSelectLead, onAddLead, onUpdateLead, onStartCampaign, className }: SidebarProps) {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'saved' | 'search' | 'reminders'>('saved');
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
@@ -30,13 +31,17 @@ export function Sidebar({ leads, selectedLeadId, onSelectLead, onAddLead, onUpda
     if (!query.trim()) return;
 
     setIsSearching(true);
+    setSearchError(null);
     setActiveTab('search');
     try {
       const results = await searchBusinesses(query);
       setSearchResults(results);
-    } catch (error) {
+      if (results.length === 0) {
+        setSearchError('No results found or failed to parse response.');
+      }
+    } catch (error: any) {
       console.error('Search failed:', error);
-      // Fallback or error state could be added here
+      setSearchError(error.message || 'An error occurred while searching.');
     } finally {
       setIsSearching(false);
     }
@@ -178,7 +183,13 @@ export function Sidebar({ leads, selectedLeadId, onSelectLead, onAddLead, onUpda
             {isSearching ? (
               <div className="flex flex-col items-center justify-center py-12 text-white/40">
                 <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                <p className="text-sm">Searching Google Maps...</p>
+                <p className="text-sm">Searching the web...</p>
+              </div>
+            ) : searchError ? (
+              <div className="text-center py-8 text-red-400 text-sm px-4 bg-red-500/10 rounded-lg border border-red-500/20 m-2">
+                <p className="font-medium mb-1">Search Error</p>
+                <p className="opacity-80">{searchError}</p>
+                <p className="text-xs mt-3 opacity-60">If you are on Vercel, ensure your VITE_GEMINI_API_KEY has the "Generative Language API" enabled and no IP/referrer restrictions.</p>
               </div>
             ) : searchResults.length > 0 ? (
               searchResults.map((result, i) => {

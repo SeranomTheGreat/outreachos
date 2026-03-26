@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey });
 
 export async function searchBusinesses(query: string) {
   try {
@@ -8,7 +9,7 @@ export async function searchBusinesses(query: string) {
       model: 'gemini-3-flash-preview',
       contents: `Search for businesses matching: "${query}". Return the results as a JSON array of objects. Each object MUST have the following properties: "name" (string), "address" (string), "phone" (string, optional), "website" (string, optional), "email" (string, optional). Do not include any markdown formatting, just the raw JSON array. If you cannot find any, return an empty array [].`,
       config: {
-        tools: [{ googleMaps: {} }],
+        tools: [{ googleSearch: {} }],
       },
     });
 
@@ -16,12 +17,16 @@ export async function searchBusinesses(query: string) {
     if (!text) return [];
     
     try {
-      // Remove markdown code block formatting if present
-      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const results = JSON.parse(text);
-      return Array.isArray(results) ? results : [];
+      // Extract JSON array using regex to handle extra text/citations from Maps grounding
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        const results = JSON.parse(match[0]);
+        return Array.isArray(results) ? results : [];
+      }
+      console.warn('No JSON array found in response:', text);
+      return [];
     } catch (e) {
-      console.error('Failed to parse search results:', e);
+      console.error('Failed to parse search results:', e, text);
       return [];
     }
   } catch (error) {
