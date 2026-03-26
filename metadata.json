@@ -1,0 +1,5 @@
+{
+  "name": "OutreachOS",
+  "description": "An AI-powered business outreach workspace that eliminates context switching between Google Maps, ChatGPT, WhatsApp, and Gmail.",
+  "requestFramePermissions": []
+}
